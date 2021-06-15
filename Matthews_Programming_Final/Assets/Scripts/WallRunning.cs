@@ -7,7 +7,7 @@ public class WallRunning : MonoBehaviour
     [Header("Wall Running")]
     [SerializeField] private float _wallRunUpForce, _wallRunPushForce;
     //<<Summary>> Boolean that is used for adding forces when jumping off the walls, used to determine which direction.
-    private bool isRightWall, isLeftWall, isOffWall;
+    private bool isRightWall, isLeftWall, isOffWall, _speedSlow;
 
     //Used for effects etc.
     public static bool isWallRunning;
@@ -39,26 +39,26 @@ public class WallRunning : MonoBehaviour
 
         }
 
-            if (Physics.Raycast(head.transform.position, head.transform.right, out rightRaycast))
+        if (Physics.Raycast(head.transform.position, head.transform.right, out rightRaycast))
+        {
+            distanceFromRightWall = Vector3.Distance(head.transform.position, rightRaycast.point);
+            if (distanceFromRightWall <= 3f)
             {
-                distanceFromRightWall = Vector3.Distance(head.transform.position, rightRaycast.point);
-                if (distanceFromRightWall <= 3f)
-                {
-                    isRightWall = true;
-                    isLeftWall = false;
-                    isOffWall = false;
-                }
+                isRightWall = true;
+                isLeftWall = false;
+                isOffWall = false;
             }
-            if (Physics.Raycast(head.transform.position, -head.transform.right, out leftRaycast))
+        }
+        if (Physics.Raycast(head.transform.position, -head.transform.right, out leftRaycast))
+        {
+            distanceFromLeftWall = Vector3.Distance(head.transform.position, leftRaycast.point);
+            if (distanceFromLeftWall <= 3f)
             {
-                distanceFromLeftWall = Vector3.Distance(head.transform.position, leftRaycast.point);
-                if (distanceFromLeftWall <= 3f)
-                {
-                    isRightWall = false;
-                    isLeftWall = true;
-                    isOffWall = false;
-                }
+                isRightWall = false;
+                isLeftWall = true;
+                isOffWall = false;
             }
+        }
     }
 
     private void Update()
@@ -67,32 +67,36 @@ public class WallRunning : MonoBehaviour
     }
 
     private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.transform.CompareTag("RunnableWall"))
         {
-            if (collision.transform.CompareTag("RunnableWall"))
+            isWallRunning = true;
+            rb.useGravity = true;
+
+
+            if (isLeftWall)
             {
-                isWallRunning = true;
-                rb.useGravity = false;
+                cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, -10f);
+            }
 
-                if (isLeftWall)
-                {
-                    cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, -10f);
-                }
+            if (isRightWall)
+            {
+                cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, 10f);
+            }
 
-                if (isRightWall)
-                {
-                    cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, 10f);
-                }
+            if (isOffWall)
+            {
 
-                if (isOffWall)
-                {
-                    cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
-                }
             }
         }
+    }
 
-        private void OnCollisionStay(Collision collision)
+    private void OnCollisionStay(Collision collision)
+    {
+        //if (_speedSlow => 3)
         {
 
+            
             if (collision.transform.CompareTag("RunnableWall"))
             {
                 if (Input.GetKey(KeyCode.Space) && isLeftWall)
@@ -106,23 +110,18 @@ public class WallRunning : MonoBehaviour
                     rb.AddForce(Vector3.up * _wallRunUpForce, ForceMode.Impulse);
                     rb.AddForce(-head.transform.right * _wallRunUpForce, ForceMode.Impulse);
                 }
-                
-                if (Input.GetKey(KeyCode.Space) && isOffWall)
-                {
-                    rb.AddForce(Vector3.up * _wallRunUpForce, ForceMode.Force);
-                    rb.AddForce(-head.transform.right * _wallRunUpForce, ForceMode.Force);
-                }
-            }
-        }
-
-        private void OnCollisionExit(Collision collision)
-        {
-
-            if (collision.transform.CompareTag("RunnableWall"))
-            {
-                cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
-                isWallRunning = false;
-                rb.useGravity = true;
             }
         }
     }
+
+    private void OnCollisionExit(Collision collision)
+    {
+
+        if (collision.transform.CompareTag("RunnableWall"))
+        {
+            cameraPosition.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+            isWallRunning = false;
+            rb.useGravity = true;
+        }
+    }
+}
