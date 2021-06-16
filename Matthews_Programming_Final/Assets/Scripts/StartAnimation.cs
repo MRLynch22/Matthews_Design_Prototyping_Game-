@@ -18,7 +18,7 @@ public class StartAnimation : MonoBehaviour
     {
         if (other.CompareTag("player"))
         {
-            _myAnimationController.SetBool("playAnimation", true);
+            _myAnimationController.SetBool("playAnimation", false);
         }
 
     }
